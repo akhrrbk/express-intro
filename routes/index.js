@@ -5,7 +5,7 @@ var app = express()
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Exprez' });
+  res.render('index', { title: 'Backend Server running with Express' });
 });
 
 module.exports = router;
