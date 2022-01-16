@@ -2,15 +2,13 @@ const mongoose = require('mongoose')
 const url = process.env.MONGODB_URI
 
 console.log('connecting to', url);
-mongoose.connect(url).then(result => {console.log('connected to mongoDB')}).catch((error) => { console.log('error connectign to MongoDB', error.message)})
-
-// const url =
-//   'mongodb+srv://fullstack:sekred@cluster0-ostce.mongodb.net/note-app?retryWrites=true'
-
-if (process.argv.length < 3){
-  console.log('please provide as password as an argument: node mongo.js <password>');
-  process.exit(1)
-}
+mongoose.connect(url)
+  .then(result => {
+    console.log('connected to mongoDB')
+  })
+  .catch((error) => {
+    console.log('error connectign to MongoDB', error.message)
+  })
 
 const noteSchema = new mongoose.Schema({
   name: String,
@@ -18,7 +16,6 @@ const noteSchema = new mongoose.Schema({
   date: Date,
 })
 
-// this line deletes some of the lines in our json file. also executes JSON.stringify
 noteSchema.set('toJSON', {
   transform: (document, returnedObject) => {
       returnedObject.id = returnedObject._id.toString()
@@ -28,5 +25,5 @@ noteSchema.set('toJSON', {
   }
   })
 
-
+module.exports = mongoose.model('firstDatabase', noteSchema)
 

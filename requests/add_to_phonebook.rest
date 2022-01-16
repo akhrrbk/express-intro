@@ -1,7 +1,7 @@
-POST http://localhost:3003/api/persons/
+POST http://localhost:3001/api/personss/
 Content-Type: application/json
 
 {
-    "name": "Axror Abduxamitov",
-    "number": "000-90-694-4697"
+    "name": "kirmoshina",
+    "number": 5678905678
 }

@@ -1,122 +1,106 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
-const mongoose = require('mongoose')
-const Note = require('./modules/note')
+const Note = require('./models/note')
+const cors = require('cors')    
 
 app.use(express.static('build'))
 app.use(express.json())
+app.use(cors())
 
-// const url = `mongodb+srv://jalap:${password}@cluster0.jn9rt.mongodb.net/phonebook-database?retryWrites=true&w=majority`
-
-
-
-const Note = mongoose.model('firstDatabase', noteSchema)
-
-// this line deletes some of the lines in our json file. also executes JSON.stringify
-noteSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString()
-        delete returnedObject._id
-        delete returnedObject.__v
-        // delete returnedObject.date
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return res.status(400).send({ error: 'malformatted id' })
     }
-    })
+  
+    next(error)
+  }
 
-// let persons = [
-//     { 
-//       "id": 1,
-//       "name": "Arto Hellas", 
-//       "number": "040-123456"
-//     },
-//     { 
-//       "id": 2,
-//       "name": "Ada Lovelace", 
-//       "number": "39-44-5323523"
-//     },
-//     { 
-//       "id": 3,
-//       "name": "Dan Abramov", 
-//       "number": "12-43-234345"
-//     },
-//     { 
-//       "id": 4,
-//       "name": "Mary Poppendieck", 
-//       "number": "39-23-6423122"
-//     }
-// ]
-
-
-const generateid = () => {
-    const maxid = persons.length > 0 ? Math.max(...persons.map(p=>p.id)) : 0
-    return maxid + 1
+const requestLogger = (request, response, next) => {
+console.log('Method:', request.method)
+console.log('Path:  ', request.path)
+console.log('Body:  ', request.body)
+console.log('---')
+next()
 }
 
+app.use(requestLogger)
+  
 app.get('/', (req, res)=>{
     res.send('home page :)')
 })
 
-app.get('/api/persons/', (req, res)=>{
-    res.json(persons)
-})
-
-app.get('/info/', (req, res)=>{
-    const note = {
-        length: persons.length,
-        date: new Date(),
-    }
-    const data = `<div> <p>Phonebook has info of ${note.length}</p> <p>${note.date}</p> </div>`
-    res.send(data)
-})
-
-// access a spefici note with id
-app.get('/api/persons/:userid', (req, res)=>{
-    const id = Number(req.params.userid) // lol it was passed as string first, so i kept getting an error
-    // console.log(id);
-    const person = persons.find(person => person.id === id)
-    // console.log(person); // checking if we assigned data
-    if(person){
-        res.json(person)
-    } else {
-        res.send('data does not exist')
-    }
-})
-
-// delete a specific note with id
-app.delete('/api/persons/:userid', (req, res)=>{
-    const id = Number(req.params.userid) // string to int
-    persons = persons.filter(p=>p.id !== id)
-    res.status(204).end()
-})
-
-// add new entires
-app.post('/api/persons/', (req, res) =>{
-    const body = req.body
-    const myname = body.name
-    // console.log(myname);
-    const nameexist = persons.find(person => person.name === myname)
-    // console.log(nameexist);
-    if(nameexist){
-        return res.status(400).json({error: 'name already exists :('})
-    }
-    if(!body.name || !body.number){
-        return res.status(400).json({error: 'name missing :('})
-    }
-    const newperson = {
-        id: generateid(),
-        name: body.name,
-        number: body.number,
-    }
-    persons = persons.concat(newperson)
-    res.json(newperson)
-})
-
-app.get('/api/personss', (request, response) => {
+app.get('/api/personss', (req, res) => {
     Note.find({}).then(notes => {
-      response.json(notes)
+      res.json(notes)
     })
   })
 
-// port
+app.post('/api/personss', (req, res) => {
+    const body = req.body
+
+    if(Object.keys(body).length < 2){
+        return res.status(400).json({error: 'content missing'})
+    }
+    
+    const note = new Note({
+        name: body.name,
+        number: body.number,
+        date: new Date(),
+    })
+    
+    note.save().then(savedNote => {
+        res.json(savedNote)
+    })
+})
+
+app.get('/api/personss/:id', (req, res) => {
+    Note.findById(req.params.id)
+        .then(note => {
+            if(note){
+                res.json(note)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch((error) => {
+            console.log(error) 
+            res.status(400).end()
+        })
+})
+
+app.delete('/api/personss/:id', (req, res, next) => {
+    Note.findByIdAndRemove(req.params.id)
+      .then(result => {
+        res.status(204).end()
+      })
+      .catch(error => next(error))
+  })
+
+app.put('/api/personss/:id', (req, res, next) => {
+    const body = req.body
+
+    const note = {
+        name: body.name,
+        number: body.number,
+    }
+    Note.findByIdAndUpdate(req.params.id)
+        .then(updatedNote => {
+            res.json(updatedNote)
+        })
+        .catch(error => next(error))
+})
+
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({ error: 'unknown endpoint' })
+  }
+  
+app.use(unknownEndpoint)
+
+app.use(errorHandler)
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, ()=>{
     console.log(`server running on port ${PORT}`);
