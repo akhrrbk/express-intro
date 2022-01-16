@@ -28,10 +28,9 @@ next()
 
 app.use(requestLogger)
   
-app.get('/', (req, res)=>{
-    res.send('home page :)')
+app.get('/home', (req, res) => {
+    res.send('home page')
 })
-
 app.get('/api/personss', (req, res) => {
     Note.find({}).then(notes => {
       res.json(notes)
@@ -91,6 +90,7 @@ app.put('/api/personss/:id', (req, res, next) => {
             res.json(updatedNote)
         })
         .catch(error => next(error))
+    console.log('but updated the number');
 })
 
 const unknownEndpoint = (req, res) => {
