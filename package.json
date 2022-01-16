@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node index2.js",
-    "dev": "nodemon index2.js",
+    "start": "node index3.js",
+    "dev": "nodemon index3.js",
     "logs:prod": "heroku logs --tail",
     "deploy": "git push heroku main"
   },
