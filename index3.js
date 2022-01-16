@@ -4,7 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express')
 const app = express()
 const Note = require('./models/note')
-const cors = require('cors')    
+const cors = require('cors')
 
 app.use(express.static('build'))
 app.use(express.json())
@@ -35,38 +35,32 @@ app.use(requestLogger)
 app.get('/home', (req, res) => {
     res.send('home page')
 })
-app.get('/api/personss', (req, res) => {
+app.get('/api/persons', (req, res) => {
     Note.find({}).then(notes => {
       res.json(notes)
     })
-  })
+})
 
-app.post('/api/personss', (req, res) => {
+app.post('/api/persons', (req, res) => {
     const body = req.body
 
     if(Object.keys(body).length < 2){
         return res.status(400).json({error: 'content missing'})
     }
-    Note.find({}).then(notes => {
-        if(notes.filter(n => n.name === body.name).length < 1){
-            const note = new Note({
-                name: body.name,
-                number: body.number,
-                date: new Date(),
-            })
-            
-            note.save().then(savedNote => {
-                res.json(savedNote)
-            })
-        } else if(notes.filter(n => n.name === body.name).length > 0){
-            console.log('name already exists in our database. not saved!');
-            return res.status(400).json({error: 'name already exists. not added!'})
-        }
+    
+    const note = new Note({
+        name: body.name,
+        number: body.number,
+        date: new Date(),
+    })
+    
+    note.save().then(savedNote => {
+        res.json(savedNote)
     })
     
 })
 
-app.get('/api/personss/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res) => {
     Note.findById(req.params.id)
         .then(note => {
             if(note){
@@ -81,7 +75,7 @@ app.get('/api/personss/:id', (req, res) => {
         })
 })
 
-app.delete('/api/personss/:id', (req, res, next) => {
+app.delete('/api/persons/:id', (req, res, next) => {
     Note.findByIdAndRemove(req.params.id)
       .then(result => {
         res.status(204).end()
@@ -89,7 +83,7 @@ app.delete('/api/personss/:id', (req, res, next) => {
       .catch(error => next(error))
   })
 
-app.put('/api/personss/:id', (req, res, next) => {
+app.put('/api/persons/:id', (req, res, next) => {
     const body = req.body
 
     const note = {
