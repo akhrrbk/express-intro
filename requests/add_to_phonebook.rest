@@ -2,6 +2,6 @@ POST http://localhost:3001/api/personss/
 Content-Type: application/json
 
 {
-    "name": "kirmoshina",
-    "number": 123456789
+    "name": "asdrrkirmoefwfshina",
+    "number": "123456789"
 }

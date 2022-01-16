@@ -47,16 +47,23 @@ app.post('/api/personss', (req, res) => {
     if(Object.keys(body).length < 2){
         return res.status(400).json({error: 'content missing'})
     }
-    
-    const note = new Note({
-        name: body.name,
-        number: body.number,
-        date: new Date(),
+    Note.find({}).then(notes => {
+        if(notes.filter(n => n.name === body.name).length < 1){
+            const note = new Note({
+                name: body.name,
+                number: body.number,
+                date: new Date(),
+            })
+            
+            note.save().then(savedNote => {
+                res.json(savedNote)
+            })
+        } else if(notes.filter(n => n.name === body.name).length > 0){
+            console.log('name already exists in our database. not saved!');
+            return res.status(400).json({error: 'name already exists. not added!'})
+        }
     })
     
-    note.save().then(savedNote => {
-        res.json(savedNote)
-    })
 })
 
 app.get('/api/personss/:id', (req, res) => {
