@@ -1,33 +1,61 @@
 const express = require('express')
 const app = express()
+const mongoose = require('mongoose')
 
 app.use(express.static('build'))
-
-// 
-
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
 app.use(express.json())
+
+if (process.argv.length < 3){
+    console.log('please provide as password as an argument: node mongo.js <password>');
+    process.exit(1)
+}
+
+const password = process.argv[2]
+// 
+const url = `mongodb+srv://jalap:${password}@cluster0.jn9rt.mongodb.net/phonebook-database?retryWrites=true&w=majority`
+mongoose.connect(url)
+
+const noteSchema = new mongoose.Schema({
+    name: String,
+    number: String,
+    date: Date,
+})
+
+const Note = mongoose.model('firstDatabase', noteSchema)
+
+// this line deletes some of the lines in our json file
+    noteSchema.set('toJSON', {
+        transform: (document, returnedObject) => {
+            returnedObject.id = returnedObject._id.toString()
+            delete returnedObject._id
+            delete returnedObject.__v
+            // delete returnedObject.date
+        }
+        })
+
+// let persons = [
+//     { 
+//       "id": 1,
+//       "name": "Arto Hellas", 
+//       "number": "040-123456"
+//     },
+//     { 
+//       "id": 2,
+//       "name": "Ada Lovelace", 
+//       "number": "39-44-5323523"
+//     },
+//     { 
+//       "id": 3,
+//       "name": "Dan Abramov", 
+//       "number": "12-43-234345"
+//     },
+//     { 
+//       "id": 4,
+//       "name": "Mary Poppendieck", 
+//       "number": "39-23-6423122"
+//     }
+// ]
+
 
 const generateid = () => {
     const maxid = persons.length > 0 ? Math.max(...persons.map(p=>p.id)) : 0
@@ -92,6 +120,12 @@ app.post('/api/persons/', (req, res) =>{
     persons = persons.concat(newperson)
     res.json(newperson)
 })
+
+app.get('/api/personss', (request, response) => {
+    Note.find({}).then(notes => {
+      response.json(notes)
+    })
+  })
 
 // port
 const PORT = process.env.PORT || 3001
