@@ -28,6 +28,5 @@ noteSchema.set('toJSON', {
   }
   })
 
-module.exports = mongoose.model('firstDatabase', noteSchema)
 
 
